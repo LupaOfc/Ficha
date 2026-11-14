@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha de Personagem — Vale Lumina</title>
+<style>
+  :root {
+    --paper: #f2e8cf;
+    --paper-light: #fbf5e7;
+    --ink: #403729;
+    --muted: #806f57;
+    --line: #b9a783;
+    --accent: #8b6940;
+    --accent-dark: #60472d;
+    --shadow: rgba(58, 43, 25, .16);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 28px 16px 50px;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse at 15% 10%, rgba(255,255,255,.35), transparent 36%),
+      repeating-linear-gradient(0deg, rgba(110,85,49,.025) 0 1px, transparent 1px 4px),
+      #d8c9a9;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+  button, input, textarea, select { font: inherit; }
+  .page { width: min(980px, 100%); margin: auto; }
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 14px; margin: 0 auto 14px; flex-wrap: wrap;
+  }
+  .eyebrow { color: var(--accent-dark); text-transform: uppercase; letter-spacing: .18em; font: 11px Arial, sans-serif; }
+  h1 { margin: 4px 0 0; font-size: clamp(27px, 5vw, 38px); font-weight: 600; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  button, .file-button {
+    border: 1px solid var(--accent); color: var(--paper-light);
+    background: var(--accent-dark); border-radius: 5px; padding: 9px 13px;
+    cursor: pointer; font: 12px Arial, sans-serif; letter-spacing: .03em;
+  }
+  button.secondary, .file-button { color: var(--accent-dark); background: transparent; }
+  button:hover, .file-button:hover { filter: brightness(1.12); }
+  .sheet {
+    position: relative; overflow: hidden;
+    background:
+      radial-gradient(ellipse at 80% 18%, rgba(177,143,89,.09), transparent 32%),
+      repeating-linear-gradient(90deg, rgba(111,82,43,.018) 0 1px, transparent 1px 5px),
+      var(--paper);
+    border: 1px solid #9f8a65; border-radius: 3px;
+    box-shadow: 0 12px 32px var(--shadow);
+    padding: clamp(17px, 4vw, 34px);
+  }
+  .sheet::before {
+    content: ""; position: absolute; inset: 9px; border: 1px solid rgba(139,105,64,.38);
+    pointer-events: none;
+  }
+  .watermark {
+    position: absolute; right: 26px; top: 28px; width: 190px; height: 190px;
+    opacity: .075; color: var(--accent-dark); pointer-events: none;
+  }
+  .tabs { display: flex; gap: 7px; margin: 0 0 20px; position: relative; z-index: 1; }
+  .tab {
+    color: var(--accent-dark); background: transparent; border: 1px solid var(--line);
+    padding: 9px 16px; border-radius: 4px 4px 0 0;
+  }
+  .tab.active { background: var(--accent-dark); color: var(--paper-light); border-color: var(--accent-dark); }
+  .panel { display: none; position: relative; z-index: 1; }
+  .panel.active { display: block; }
+  .identity {
+    display: grid; grid-template-columns: 150px 1fr; gap: 20px; align-items: start;
+    margin-bottom: 22px;
+  }
+  .portrait {
+    width: 150px; aspect-ratio: 1; border: 1px dashed var(--accent);
+    background: rgba(255,255,255,.22); display: grid; place-items: center;
+    position: relative; overflow: hidden; border-radius: 3px;
+  }
+  .portrait img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .portrait .placeholder { text-align: center; padding: 10px; color: var(--muted); font-size: 13px; }
+  .portrait input { display: none; }
+  .portrait label { cursor: pointer; display: block; }
+  .portrait small { display: block; margin-top: 7px; font: 10px Arial, sans-serif; }
+  .fields { display: grid; grid-template-columns: 1.5fr .8fr; gap: 13px 16px; }
+  .field { min-width: 0; }
+  label.field-label, .section-title {
+    display: block; color: var(--accent-dark); text-transform: uppercase;
+    letter-spacing: .12em; font: 10px Arial, sans-serif; margin-bottom: 6px;
+  }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%; color: var(--ink); background: rgba(255,255,255,.28);
+    border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+    padding: 8px 5px; outline: none;
+  }
+  input:focus, textarea:focus, select:focus { border-bottom: 2px solid var(--accent); }
+  .wide { grid-column: 1 / -1; }
+  .section {
+    border-top: 1px solid var(--line); padding-top: 15px; margin-top: 17px;
+  }
+  .section-heading { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; margin-bottom: 12px; }
+  .section-heading h2 { margin: 0; font-size: 17px; font-weight: 600; }
+  .section-heading span { color: var(--muted); font: 10px Arial, sans-serif; }
+  .hearts-wrap { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 12px; }
+  .hearts { display: flex; gap: 5px; flex-wrap: wrap; max-width: 100%; }
+  .heart {
+    border: 0; background: transparent; color: #9a8a73; padding: 0;
+    font-size: 24px; line-height: 1; cursor: pointer; text-shadow: 0 1px rgba(255,255,255,.6);
+  }
+  .heart.filled { color: #a54842; }
+  .heart:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+  .heart-count { display: flex; align-items: center; gap: 7px; color: var(--muted); font: 11px Arial, sans-serif; }
+  .heart-count input { width: 54px; padding: 5px; }
+  .attribute-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .attribute {
+    border: 1px solid var(--line); background: rgba(255,255,255,.18);
+    padding: 12px 10px; text-align: center;
+  }
+  .attribute label { display: block; color: var(--accent-dark); font: 10px Arial, sans-serif; text-transform: uppercase; letter-spacing: .1em; }
+  .attribute input { text-align: center; font-size: 21px; font-weight: bold; border: 0; background: transparent; width: 100%; }
+  textarea { resize: vertical; min-height: 105px; line-height: 1.45; }
+  .notes { min-height: 90px; }
+  .inventory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .inventory-box { border: 1px solid var(--line); padding: 13px; background: rgba(255,255,255,.16); }
+  .inventory-box h3 { margin: 0 0 9px; font-size: 16px; font-weight: 600; }
+  .inventory-box textarea { min-height: 230px; border: 1px solid rgba(185,167,131,.7); padding: 9px; background: rgba(255,255,255,.22); }
+  .rupees { max-width: 150px; }
+  .footer-note { text-align: center; margin-top: 20px; color: var(--muted); font: italic 11px Georgia, serif; }
+  @media (max-width: 620px) {
+    body { padding: 14px 9px 30px; }
+    .identity { grid-template-columns: 105px 1fr; gap: 12px; }
+    .portrait { width: 105px; }
+    .fields { grid-template-columns: 1fr; gap: 10px; }
+    .wide { grid-column: auto; }
+    .attribute-grid { grid-template-columns: repeat(2, 1fr); }
+    .inventory-grid { grid-template-columns: 1fr; }
+    .watermark { width: 125px; height: 125px; right: 14px; top: 70px; }
+  }
+  @media print {
+    body { padding: 0; background: white; }
+    .topbar, .tabs, .actions, .portrait label, .footer-note { display: none !important; }
+    .page { width: 100%; }
+    .sheet { box-shadow: none; border: 0; padding: 12mm; }
+    .sheet::before { inset: 4mm; }
+    .panel { display: block !important; page-break-after: always; }
+    .panel:last-child { page-break-after: auto; }
+    input, textarea, select { background: transparent !important; }
+    .heart { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">Crônicas de Vale Lumina</div>
+      <h1>Ficha de personagem</h1>
+    </div>
+    <div class="actions">
+      <button class="secondary" id="printButton" type="button">Salvar / imprimir PDF</button>
+      <button id="clearButton" type="button">Limpar ficha</button>
+    </div>
+  </header>
+
+  <main class="sheet">
+    <svg class="watermark" id="raceSymbol" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="72" fill="none" stroke="currentColor" stroke-width="4"/>
+      <path d="M100 35 L130 100 L100 165 L70 100 Z" fill="none" stroke="currentColor" stroke-width="5"/>
+    </svg>
+
+    <nav class="tabs" aria-label="Seções da ficha">
+      <button class="tab active" type="button" data-tab="character">Personagem</button>
+      <button class="tab" type="button" data-tab="inventory">Inventário</button>
+    </nav>
+
+    <section class="panel active" id="character">
+      <div class="identity">
+        <div class="portrait">
+          <label for="photo">
+            <img id="photoPreview" alt="Retrato do personagem">
+            <div class="placeholder" id="photoPlaceholder">Retrato do personagem<small>Escolher imagem</small></div>
+          </label>
+          <input id="photo" type="file" accept="image/*">
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label class="field-label" for="charName">Nome</label>
+            <input id="charName" type="text" placeholder="Nome do personagem">
+          </div>
+          <div class="field">
+            <label class="field-label" for="age">Idade</label>
+            <input id="age" type="text" placeholder="Idade">
+          </div>
+          <div class="field">
+            <label class="field-label" for="race">Raça</label>
+            <select id="race">
+              <option value="">Selecionar raça</option>
+              <option value="hylian">Hyliano</option>
+              <option value="goron">Goron</option>
+              <option value="zora">Zora</option>
+              <option value="deku">Deku</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="rupeesTop">Rúpias</label>
+            <input id="rupeesTop" type="number" min="0" placeholder="0">
+          </div>
+          <div class="field wide">
+            <label class="field-label" for="antecedent">Antecedentes / história</label>
+            <textarea id="antecedent" placeholder="De onde veio? O que aconteceu antes da aventura?"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <section class="section">
+        <div class="section-heading">
+          <h2>Corações</h2>
+          <span>Toque nos corações para marcar ou desmarcar</span>
+        </div>
+        <div class="hearts-wrap">
+          <div class="hearts" id="hearts"></div>
+          <div class="heart-count">
+            <label for="maxHearts">Máximo</label>
+            <input id="maxHearts" type="number" min="1" max="20" value="3">
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <h2>Atributos</h2>
+          <span>Registre os valores do personagem</span>
+        </div>
+        <div class="attribute-grid">
+          <div class="attribute"><label for="strength">Força</label><input id="strength" type="number" value="0"></div>
+          <div class="attribute"><label for="agility">Agilidade</label><input id="agility" type="number" value="0"></div>
+          <div class="attribute"><label for="spirit">Espírito</label><input id="spirit" type="number" value="0"></div>
+          <div class="attribute"><label for="nature">Natureza</label><input id="nature" type="number" value="0"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading"><h2>Anotações</h2><span>Informações importantes durante a aventura</span></div>
+        <textarea class="notes" id="notes" placeholder="Anote objetivos, relações, descobertas ou qualquer informação importante..."></textarea>
+      </section>
+    </section>
+
+    <section class="panel" id="inventory">
+      <div class="section-heading">
+        <h2>Inventário</h2>
+        <span>Equipamentos, objetos e tesouros</span>
+      </div>
+      <div class="inventory-grid">
+        <div class="inventory-box">
+          <h3>Equipamentos</h3>
+          <textarea id="equipment" placeholder="Espada&#10;Escudo&#10;Arco e flechas..."></textarea>
+        </div>
+        <div class="inventory-box">
+          <h3>Itens e objetos</h3>
+          <textarea id="items" placeholder="Poções, máscaras, itens mágicos e outros objetos..."></textarea>
+        </div>
+      </div>
+      <div class="section">
+        <label class="field-label" for="rupees">Rúpias</label>
+        <input class="rupees" id="rupees" type="number" min="0" value="0">
+      </div>
+      <p class="footer-note">Nem todo objeto precisa ser uma arma. Às vezes, a ferramenta certa resolve mais que a força.</p>
+    </section>
+  </main>
+  <p class="footer-note">Uma ficha para as jornadas além do Vale Lumina.</p>
+</div>
+
+<script>
+  const heartsEl = document.getElementById('hearts');
+  const maxHeartsEl = document.getElementById('maxHearts');
+  let currentHearts = 3;
+
+  function renderHearts() {
+    const max = Math.max(1, Math.min(20, Number(maxHeartsEl.value) || 1));
+    maxHeartsEl.value = max;
+    currentHearts = Math.min(currentHearts, max);
+    heartsEl.innerHTML = '';
+    for (let i = 0; i < max; i++) {
+      const heart = document.createElement('button');
+      heart.type = 'button';
+      heart.className = 'heart' + (i < currentHearts ? ' filled' : '');
+      heart.textContent = '♥';
+      heart.setAttribute('aria-label', `Coração ${i + 1}`);
+      heart.addEventListener('click', () => {
+        currentHearts = (i + 1 === currentHearts) ? i : i + 1;
+        renderHearts();
+      });
+      heartsEl.appendChild(heart);
+    }
+  }
+  maxHeartsEl.addEventListener('change', renderHearts);
+  renderHearts();
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === tab.dataset.tab));
+    });
+  });
+
+  document.getElementById('photo').addEventListener('change', event => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('photoPreview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+      document.getElementById('photoPlaceholder').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const symbols = {
+    hylian: '<path d="M100 24 L115 77 L169 100 L115 123 L100 176 L85 123 L31 100 L85 77 Z" fill="none" stroke="currentColor" stroke-width="7"/><circle cx="100" cy="100" r="15" fill="none" stroke="currentColor" stroke-width="5"/>',
+    goron: '<path d="M43 62 L77 31 L124 39 L159 75 L149 130 L113 164 L61 147 L34 105 Z" fill="none" stroke="currentColor" stroke-width="8"/><path d="M65 92 L100 69 L135 95 L112 132 L75 128 Z" fill="none" stroke="currentColor" stroke-width="5"/>',
+    zora: '<path d="M100 22 C119 56 151 67 164 100 C151 133 119 144 100 178 C81 144 49 133 36 100 C49 67 81 56 100 22 Z" fill="none" stroke="currentColor" stroke-width="7"/><path d="M100 48 L100 151 M61 100 L139 100" stroke="currentColor" stroke-width="5"/>',
+    deku: '<path d="M100 25 C83 58 49 62 42 99 C61 99 77 112 83 139 C92 124 108 124 117 139 C123 112 139 99 158 99 C151 62 117 58 100 25 Z" fill="none" stroke="currentColor" stroke-width="7"/><path d="M100 84 L100 164 M100 112 L72 91 M100 112 L128 91" fill="none" stroke="currentColor" stroke-width="5"/>'
+  };
+  document.getElementById('race').addEventListener('change', e => {
+    document.getElementById('raceSymbol').innerHTML = symbols[e.target.value] || '<circle cx="100" cy="100" r="72" fill="none" stroke="currentColor" stroke-width="4"/><path d="M100 35 L130 100 L100 165 L70 100 Z" fill="none" stroke="currentColor" stroke-width="5"/>';
+  });
+
+  document.getElementById('rupeesTop').addEventListener('input', e => document.getElementById('rupees').value = e.target.value);
+  document.getElementById('rupees').addEventListener('input', e => document.getElementById('rupeesTop').value = e.target.value);
+
+  function clearSheet() {
+    if (!window.confirm('Tem certeza de que deseja limpar esta ficha?')) return;
+    document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(el => {
+      if (el.id === 'maxHearts') el.value = 3;
+      else if (el.id.startsWith('strength') || el.id === 'agility' || el.id === 'spirit' || el.id === 'nature' || el.id === 'rupees') el.value = 0;
+      else el.value = '';
+    });
+    document.getElementById('race').value = '';
+    document.getElementById('photo').value = '';
+    document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('photoPlaceholder').style.display = 'block';
+    document.getElementById('rupeesTop').value = '';
+    currentHearts = 3;
+    renderHearts();
+    document.getElementById('raceSymbol').innerHTML = '<circle cx="100" cy="100" r="72" fill="none" stroke="currentColor" stroke-width="4"/><path d="M100 35 L130 100 L100 165 L70 100 Z" fill="none" stroke="currentColor" stroke-width="5"/>';
+  }
+  // Ações dos botões: listeners explícitos para evitar falhas de handlers inline.
+  document.getElementById('clearButton').addEventListener('click', clearSheet);
+  document.getElementById('printButton').addEventListener('click', () => {
+    // A impressão do navegador permite escolher "Salvar como PDF".
+    window.focus();
+    window.print();
+  });
+</script>
+</body>
+</html>
